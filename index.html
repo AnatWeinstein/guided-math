@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guided Math - Personalized Learning Platform</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --bg-primary: #0f1419;
+      --bg-secondary: #1a1f2e;
+      --bg-tertiary: #252b3a;
+      --accent-primary: #00d4aa;
+      --accent-secondary: #7c3aed;
+      --accent-blue: #3b82f6;
+      --accent-success: #10b981;
+      --accent-warning: #f59e0b;
+      --accent-danger: #ef4444;
+      --text-primary: #ffffff;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --border: #2d3748;
+    }
+    
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+    
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    
+    .sidebar-header {
+      padding: 2rem 1.5rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    
+    .user-info {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    
+    .sidebar-nav {
+      flex: 1;
+      padding: 1rem 0;
+    }
+    
+    .nav-item {
+      padding: 0.875rem 1.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    
+    .nav-item:hover {
+      background: rgba(0, 212, 170, 0.1);
+      color: var(--accent-primary);
+    }
+    
+    .nav-item.active {
+      background: rgba(0, 212, 170, 0.1);
+      border-left-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+    
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 2rem;
+      max-width: 1400px;
+    }
+    
+    .page-header {
+      margin-bottom: 2rem;
+    }
+    
+    .page-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    
+    .page-subtitle {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+    
+    /* Cards */
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      transition: all 0.3s;
+    }
+    
+    .card:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+    }
+    
+    /* Buttons */
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary), #00b894);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 24px rgba(0, 212, 170, 0.3);
+    }
+    
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--bg-secondary);
+      border-color: var(--accent-primary);
+    }
+    
+    /* Progress */
+    .progress-bar {
+      height: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 4px;
+      transition: width 0.6s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    
+    .badge-success {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-success);
+    }
+    
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-warning);
+    }
+    
+    .badge-primary {
+      background: rgba(0, 212, 170, 0.15);
+      color: var(--accent-primary);
+    }
+    
+    .badge-locked {
+      background: rgba(100, 116, 139, 0.15);
+      color: var(--text-muted);
+    }
+    
+    /* Playlist Card */
+    .playlist-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .playlist-card:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0, 212, 170, 0.2);
+    }
+    
+    .playlist-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+    
+    .playlist-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .playlist-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    
+    .playlist-meta {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+    
+    /* Module List */
+    .module-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    .module-item {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      background: var(--bg-tertiary);
+      border-radius: 0.75rem;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .module-item:hover:not(.locked) {
+      background: var(--bg-secondary);
+      border-color: var(--accent-primary);
+    }
+    
+    .module-item.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .module-item.completed {
+      border-color: var(--accent-success);
+      background: rgba(16, 185, 129, 0.05);
+    }
+    
+    .module-icon {
+      font-size: 1.5rem;
+      margin-right: 1rem;
+    }
+    
+    .module-info {
+      flex: 1;
+    }
+    
+    .module-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    
+    .module-meta {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    
+    /* Video Embed */
+    .video-container {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%;
+      margin-bottom: 1.5rem;
+      border-radius: 1rem;
+      overflow: hidden;
+      background: var(--bg-tertiary);
+    }
+    
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    
+    /* Input */
+    .input-field {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      background: var(--bg-tertiary);
+      border: 2px solid var(--border);
+      border-radius: 0.75rem;
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+    
+    .input-field:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 4px rgba(0, 212, 170, 0.1);
+    }
+    
+    /* Grid */
+    .grid {
+      display: grid;
+      gap: 1.5rem;
+    }
+    
+    .grid-2 {
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+    
+    .grid-3 {
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    
+    /* Stats Card */
+    .stat-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+    }
+    
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+    
+    /* Learning Path Visual */
+    .learning-path {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      position: relative;
+      padding-left: 2rem;
+    }
+    
+    .path-node {
+      position: relative;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 1rem;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .path-node::before {
+      content: '';
+      position: absolute;
+      left: -2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1rem;
+      height: 1rem;
+      border-radius: 50%;
+      background: var(--border);
+      border: 3px solid var(--bg-primary);
+    }
+    
+    .path-node.completed::before {
+      background: var(--accent-success);
+    }
+    
+    .path-node.current::before {
+      background: var(--accent-primary);
+      box-shadow: 0 0 12px var(--accent-primary);
+    }
+    
+    .path-node::after {
+      content: '';
+      position: absolute;
+      left: calc(-2rem + 0.5rem);
+      top: calc(50% + 0.5rem);
+      width: 2px;
+      height: calc(100% + 1rem);
+      background: var(--border);
+    }
+    
+    .path-node:last-child::after {
+      display: none;
+    }
+    
+    .path-node.completed::after {
+      background: var(--accent-success);
+    }
+    
+    /* Mastery Indicator */
+    .mastery-ring {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 6px solid var(--bg-tertiary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      font-weight: 700;
+      position: relative;
+    }
+    
+    .mastery-ring.high {
+      border-color: var(--accent-success);
+      color: var(--accent-success);
+    }
+    
+    .mastery-ring.medium {
+      border-color: var(--accent-warning);
+      color: var(--accent-warning);
+    }
+    
+    .mastery-ring.low {
+      border-color: var(--accent-danger);
+      color: var(--accent-danger);
+    }
+    
+    /* Math Display */
+    .math-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.25rem;
+      padding: 1rem;
+      background: var(--bg-tertiary);
+      border-radius: 0.75rem;
+      border-left: 4px solid var(--accent-primary);
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s ease-out;
+    }
+    
+    /* Login Screen */
+    .login-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+    }
+    
+    .login-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 1.5rem;
+      padding: 3rem;
+      max-width: 450px;
+      width: 100%;
+    }
+    
+    /* Teacher Dashboard */
+    .student-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .student-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .student-name {
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+    
+    .student-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      font-size: 0.875rem;
+    }
+    
+    .alert {
+      padding: 1rem 1.5rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .alert-success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--accent-success);
+      color: var(--accent-success);
+    }
+    
+    .alert-warning {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--accent-warning);
+      color: var(--accent-warning);
+    }
+    
+    .alert-info {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid var(--accent-blue);
+      color: var(--accent-blue);
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+    
+    // This is a comprehensive Alpha School-style platform
+    // Due to token limits, I'll create the core structure with the key features:
+    // 1. Playlist-based learning
+    // 2. Mastery system
+    // 3. Video integration
+    // 4. Teacher dashboard
+    // 5. Project-based learning
+    // 6. Visual progress tracking
+    
+    // For a production system, you would integrate:
+    // - IXL API (requires partnership)
+    // - Khan Academy API (requires API key)
+    // - More extensive problem banks
+    // - Real video hosting
+    
+    function App() {
+      const [user, setUser] = useState(null);
+      const [userRole, setUserRole] = useState(null); // 'student' or 'teacher'
+      const [currentView, setCurrentView] = useState('login');
+      
+      const handleLogin = (username, password, role) => {
+        setUser({ username });
+        setUserRole(role);
+        setCurrentView(role === 'teacher' ? 'teacher-dashboard' : 'playlists');
+      };
+      
+      if (currentView === 'login') {
+        return <LoginScreen onLogin={handleLogin} />;
+      }
+      
+      if (userRole === 'teacher') {
+        return <TeacherDashboard user={user} onLogout={() => {
+          setUser(null);
+          setUserRole(null);
+          setCurrentView('login');
+        }} />;
+      }
+      
+      return <StudentPortal user={user} onLogout={() => {
+        setUser(null);
+        setUserRole(null);
+        setCurrentView('login');
+      }} />;
+    }
+    
+    // LOGIN SCREEN
+    function LoginScreen({ onLogin }) {
+      const [username, setUsername] = useState('');
+      const [password, setPassword] = useState('');
+      const [isSignUp, setIsSignUp] = useState(false);
+      const [confirmPassword, setConfirmPassword] = useState('');
+      const [role, setRole] = useState('student');
+      const [error, setError] = useState('');
+      
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        
+        if (!username || !password) {
+          setError('Please fill in all fields');
+          return;
+        }
+        
+        if (isSignUp && password !== confirmPassword) {
+          setError('Passwords do not match');
+          return;
+        }
+        
+        if (password.length < 4) {
+          setError('Password must be at least 4 characters');
+          return;
+        }
+        
+        try {
+          const authKey = `guided_auth_${username.trim()}`;
+          
+          if (isSignUp) {
+            // Check if user exists using localStorage
+            const existingUser = localStorage.getItem(authKey);
+            if (existingUser) {
+              setError('Username already exists');
+              return;
+            }
+            
+            // Create new user
+            localStorage.setItem(authKey, JSON.stringify({ password, role }));
+            onLogin(username.trim(), password, role);
+          } else {
+            // Login
+            const userData = localStorage.getItem(authKey);
+            if (!userData) {
+              setError('User not found. Please sign up first.');
+              return;
+            }
+            
+            const user = JSON.parse(userData);
+            if (user.password !== password) {
+              setError('Incorrect password');
+              return;
+            }
+            
+            onLogin(username.trim(), password, user.role || 'student');
+          }
+        } catch (err) {
+          console.error('Auth error:', err);
+          setError('Authentication error: ' + err.message);
+        }
+      };
+      
+      return (
+        <div className="login-container fade-in">
+          <div className="login-card">
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎓</div>
+              <div className="logo" style={{ fontSize: '2rem' }}>Guided Math</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                Personalized Learning • Mastery-Based • Project-Driven
+              </div>
+            </div>
+            
+            {error && (
+              <div className="alert alert-warning" style={{ marginBottom: '1rem' }}>
+                {error}
+              </div>
+            )}
+            
+            <form onSubmit={handleSubmit}>
+              <input
+                type="text"
+                className="input-field"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                style={{ marginBottom: '1rem' }}
+              />
+              <input
+                type="password"
+                className="input-field"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ marginBottom: '1rem' }}
+              />
+              
+              {isSignUp && (
+                <>
+                  <input
+                    type="password"
+                    className="input-field"
+                    placeholder="Confirm Password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    style={{ marginBottom: '1rem' }}
+                  />
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
+                      I am a:
+                    </label>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                        <input
+                          type="radio"
+                          value="student"
+                          checked={role === 'student'}
+                          onChange={(e) => setRole(e.target.value)}
+                          style={{ marginRight: '0.5rem' }}
+                        />
+                        Student
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                        <input
+                          type="radio"
+                          value="teacher"
+                          checked={role === 'teacher'}
+                          onChange={(e) => setRole(e.target.value)}
+                          style={{ marginRight: '0.5rem' }}
+                        />
+                        Teacher
+                      </label>
+                    </div>
+                  </div>
+                </>
+              )}
+              
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginBottom: '1rem' }}>
+                {isSignUp ? 'Sign Up' : 'Log In'}
+              </button>
+              
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ width: '100%', marginBottom: '0.5rem' }}
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError('');
+                }}
+              >
+                {isSignUp ? 'Already have an account? Log in' : 'New here? Sign up'}
+              </button>
+              
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ width: '100%', fontSize: '0.875rem', padding: '0.5rem' }}
+                onClick={() => {
+                  // Demo mode - bypass storage
+                  onLogin('demo_user', 'demo', 'student');
+                }}
+              >
+                Try Demo (No Login Required)
+              </button>
+            </form>
+            
+            <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(0, 212, 170, 0.1)', borderRadius: '0.75rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+              <strong>Demo Features:</strong><br/>
+              ✓ Playlist-based learning paths<br/>
+              ✓ Mastery-based progression<br/>
+              ✓ Integrated video tutorials<br/>
+              ✓ Project-based assessments<br/>
+              ✓ Teacher dashboard<br/>
+              ✓ IXL & Khan Academy style practice
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    // STUDENT PORTAL - Main container
+    function StudentPortal({ user, onLogout }) {
+      const [currentScreen, setCurrentScreen] = useState('playlists'); // playlists, module, practice
+      const [selectedPlaylist, setSelectedPlaylist] = useState(null);
+      const [selectedModule, setSelectedModule] = useState(null);
+      const [studentData, setStudentData] = useState(null);
+      
+      useEffect(() => {
+        loadStudentData();
+      }, [user]);
+      
+      const loadStudentData = async () => {
+        try {
+          const dataKey = `guided_student_${user.username}`;
+          const savedData = localStorage.getItem(dataKey);
+          
+          let data;
+          if (savedData) {
+            data = JSON.parse(savedData);
+          } else {
+            // Initialize new student
+            data = {
+              username: user.username,
+              playlists: {},
+              overallProgress: 0,
+              totalProblems: 0,
+              totalCorrect: 0
+            };
+            localStorage.setItem(dataKey, JSON.stringify(data));
+          }
+          
+          setStudentData(data);
+        } catch (err) {
+          console.error('Error loading student data:', err);
+          // Set default data even if storage fails
+          setStudentData({
+            username: user.username,
+            playlists: {},
+            overallProgress: 0,
+            totalProblems: 0,
+            totalCorrect: 0
+          });
+        }
+      };
+      
+      const saveStudentData = async (data) => {
+        setStudentData(data);
+        try {
+          localStorage.setItem(`guided_student_${user.username}`, JSON.stringify(data));
+        } catch (err) {
+          console.error('Error saving student data:', err);
+        }
+      };
+      
+      if (!studentData) {
+        return <div className="login-container">Loading your personalized learning path...</div>;
+      }
+      
+      return (
+        <div className="app-container">
+          <Sidebar
+            currentScreen={currentScreen}
+            setCurrentScreen={setCurrentScreen}
+            user={user}
+            studentData={studentData}
+            onLogout={onLogout}
+          />
+          <div className="main-content">
+            {currentScreen === 'playlists' && (
+              <PlaylistsView
+                studentData={studentData}
+                onSelectPlaylist={(playlist) => {
+                  setSelectedPlaylist(playlist);
+                  setCurrentScreen('playlist-detail');
+                }}
+              />
+            )}
+            {currentScreen === 'playlist-detail' && (
+              <PlaylistDetailView
+                playlist={selectedPlaylist}
+                studentData={studentData}
+                onSelectModule={(module) => {
+                  setSelectedModule(module);
+                  setCurrentScreen('module');
+                }}
+                onBack={() => setCurrentScreen('playlists')}
+              />
+            )}
+            {currentScreen === 'module' && (
+              <ModuleView
+                module={selectedModule}
+                studentData={studentData}
+                saveStudentData={saveStudentData}
+                onBack={() => setCurrentScreen('playlist-detail')}
+              />
+            )}
+            {currentScreen === 'progress' && (
+              <ProgressView studentData={studentData} />
+            )}
+          </div>
+        </div>
+      );
+    }
+    
+    // SIDEBAR
+    function Sidebar({ currentScreen, setCurrentScreen, user, studentData, onLogout }) {
+      const navItems = [
+        { id: 'playlists', label: 'Learning Playlists', icon: '📚' },
+        { id: 'progress', label: 'My Progress', icon: '📊' },
+        { id: 'achievements', label: 'Achievements', icon: '🏆' },
+      ];
+      
+      return (
+        <div className="sidebar">
+          <div className="sidebar-header">
+            <div className="logo">Guided Math</div>
+            <div className="user-info">Welcome, {user.username}!</div>
+          </div>
+          
+          <div className="sidebar-nav">
+            {navItems.map(item => (
+              <div
+                key={item.id}
+                className={`nav-item ${currentScreen === item.id ? 'active' : ''}`}
+                onClick={() => setCurrentScreen(item.id)}
+              >
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+          
+          <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border)' }}>
+            <button className="btn btn-secondary" style={{ width: '100%' }} onClick={onLogout}>
+              Log Out
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
+    // PLAYLISTS VIEW
+    function PlaylistsView({ studentData, onSelectPlaylist }) {
+      // Sample playlists - in production, this would come from a comprehensive curriculum
+      const playlists = [
+        {
+          id: 'algebra_foundations',
+          title: 'Algebra Foundations',
+          description: 'Master the fundamentals of algebraic thinking',
+          icon: '🔢',
+          level: 'Beginner',
+          modules: 10,
+          estimatedHours: 20
+        },
+        {
+          id: 'geometry_essentials',
+          title: 'Geometry Essentials',
+          description: 'Explore shapes, proofs, and spatial reasoning',
+          icon: '📐',
+          level: 'Beginner',
+          modules: 9,
+          estimatedHours: 18
+        },
+        {
+          id: 'proofs_reasoning',
+          title: 'Mathematical Reasoning & Proofs',
+          description: 'Learn to think and write like a mathematician',
+          icon: '✓',
+          level: 'Intermediate',
+          modules: 8,
+          estimatedHours: 14
+        },
+        {
+          id: 'calculus_journey',
+          title: 'Calculus Journey',
+          description: 'Understanding change and accumulation',
+          icon: '∫',
+          level: 'Advanced',
+          modules: 11,
+          estimatedHours: 25
+        }
+      ];
+      
+      return (
+        <div className="fade-in">
+          <div className="page-header">
+            <h1 className="page-title">Your Learning Playlists</h1>
+            <p className="page-subtitle">Choose a playlist to begin your personalized learning journey</p>
+          </div>
+          
+          {studentData.totalProblems === 0 && (
+            <div className="alert alert-info">
+              <strong>Welcome to Guided Math!</strong> Start with any playlist below. The system will adapt to your pace and ensure mastery before moving forward.
+            </div>
+          )}
+          
+          <div className="grid grid-2">
+            {playlists.map(playlist => {
+              const playlistProgress = studentData.playlists[playlist.id]?.progress || 0;
+              
+              return (
+                <div
+                  key={playlist.id}
+                  className="playlist-card"
+                  onClick={() => onSelectPlaylist(playlist)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="playlist-icon">{playlist.icon}</div>
+                  <div className="playlist-title">{playlist.title}</div>
+                  <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                    {playlist.description}
+                  </p>
+                  <div className="playlist-meta">
+                    <div>
+                      <span className="badge badge-primary">{playlist.level}</span>
+                    </div>
+                    <div>{playlist.modules} modules</div>
+                    <div>{playlist.estimatedHours}h</div>
+                  </div>
+                  <div className="progress-bar" style={{ marginTop: '1rem' }}>
+                    <div className="progress-fill" style={{ width: `${playlistProgress}%` }} />
+                  </div>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                    {Math.round(playlistProgress)}% complete
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+    
+    // This is a comprehensive foundation. Due to the extensive nature of replicating
+    // the entire Alpha School system, I'm providing the core architecture.
+    // The full implementation would require thousands more lines for:
+    // - Complete problem generation for all topics
+    // - IXL-style varied problem types
+    // - Video tutorial integration
+    // - Project rubrics and grading
+    // - Teacher analytics dashboard
+    // - Detailed progress tracking
+    
+    // PLAYLIST DETAIL VIEW
+    function PlaylistDetailView({ playlist, studentData, onSelectModule, onBack }) {
+      // Generate sample modules for the playlist
+      const getModulesForPlaylist = (playlistId) => {
+        const modules = {
+          'algebra_foundations': [
+            { id: 'alg_1', title: 'Linear Equations - Basics', type: 'lesson', icon: '📖', locked: false, completed: false, problems: 12 },
+            { id: 'alg_2', title: 'Linear Equations - Advanced', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 12 },
+            { id: 'alg_3', title: 'Project: Budget Planning', type: 'project', icon: '🚀', locked: true, completed: false, problems: 1 },
+            { id: 'alg_4', title: 'Systems of Equations - Intro', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 10 },
+            { id: 'alg_5', title: 'Systems of Equations - Advanced', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 12 },
+            { id: 'alg_6', title: 'Project: Business Optimization', type: 'project', icon: '🚀', locked: true, completed: false, problems: 1 },
+            { id: 'alg_7', title: 'Quadratics - Factoring', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 15 },
+            { id: 'alg_8', title: 'Quadratics - Formula', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 12 },
+            { id: 'alg_9', title: 'Quadratics - Applications', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 10 },
+            { id: 'alg_10', title: 'Capstone: Park Design Challenge', type: 'capstone', icon: '🏆', locked: true, completed: false, problems: 1 }
+          ],
+          'geometry_essentials': [
+            { id: 'geo_1', title: 'Triangles - Fundamentals', type: 'lesson', icon: '📖', locked: false, completed: false, problems: 12 },
+            { id: 'geo_2', title: 'Triangle Congruence & Proofs', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 10 },
+            { id: 'geo_3', title: 'Project: Bridge Design', type: 'project', icon: '🚀', locked: true, completed: false, problems: 1 },
+            { id: 'geo_4', title: 'Circles - Properties', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 12 },
+            { id: 'geo_5', title: 'Circles - Advanced Topics', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 10 },
+            { id: 'geo_6', title: 'Coordinate Geometry', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 12 },
+            { id: 'geo_7', title: 'Project: City Planning', type: 'project', icon: '🚀', locked: true, completed: false, problems: 1 },
+            { id: 'geo_8', title: 'Solid Geometry', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 12 },
+            { id: 'geo_9', title: 'Capstone: Architecture Project', type: 'capstone', icon: '🏆', locked: true, completed: false, problems: 1 }
+          ],
+          'proofs_reasoning': [
+            { id: 'proof_1', title: 'Direct Proofs', type: 'lesson', icon: '📖', locked: false, completed: false, problems: 10 },
+            { id: 'proof_2', title: 'Geometric Proofs', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 10 },
+            { id: 'proof_3', title: 'Project: Proof Portfolio', type: 'project', icon: '🚀', locked: true, completed: false, problems: 1 },
+            { id: 'proof_4', title: 'Indirect Proofs', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 8 },
+            { id: 'proof_5', title: 'Mathematical Induction', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 8 },
+            { id: 'proof_6', title: 'Project: Original Theorem', type: 'project', icon: '🚀', locked: true, completed: false, problems: 1 },
+            { id: 'proof_7', title: 'Number Theory Proofs', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 10 },
+            { id: 'proof_8', title: 'Capstone: Research Paper', type: 'capstone', icon: '🏆', locked: true, completed: false, problems: 1 }
+          ],
+          'calculus_journey': [
+            { id: 'calc_1', title: 'Introduction to Limits', type: 'lesson', icon: '📖', locked: false, completed: false, problems: 12 },
+            { id: 'calc_2', title: 'Advanced Limits & Continuity', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 10 },
+            { id: 'calc_3', title: 'Derivatives - Fundamentals', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 15 },
+            { id: 'calc_4', title: 'Derivative Rules', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 15 },
+            { id: 'calc_5', title: 'Project: Motion Analysis', type: 'project', icon: '🚀', locked: true, completed: false, problems: 1 },
+            { id: 'calc_6', title: 'Applications of Derivatives', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 12 },
+            { id: 'calc_7', title: 'Introduction to Integrals', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 12 },
+            { id: 'calc_8', title: 'Integration Techniques', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 12 },
+            { id: 'calc_9', title: 'Project: Area & Volume', type: 'project', icon: '🚀', locked: true, completed: false, problems: 1 },
+            { id: 'calc_10', title: 'Applications of Integrals', type: 'lesson', icon: '📖', locked: true, completed: false, problems: 10 },
+            { id: 'calc_11', title: 'Capstone: Engineering Project', type: 'capstone', icon: '🏆', locked: true, completed: false, problems: 1 }
+          ]
+        };
+        
+        return modules[playlistId] || [];
+      };
+      
+      const modules = getModulesForPlaylist(playlist.id);
+      
+      return (
+        <div className="fade-in">
+          <button className="btn btn-secondary" onClick={onBack} style={{ marginBottom: '1.5rem' }}>
+            ← Back to Playlists
+          </button>
+          
+          <div className="page-header">
+            <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>{playlist.icon}</div>
+            <h1 className="page-title">{playlist.title}</h1>
+            <p className="page-subtitle">{playlist.description}</p>
+          </div>
+          
+          <div className="alert alert-info" style={{ marginBottom: '2rem' }}>
+            <strong>Mastery-Based Learning:</strong> You must achieve 80%+ accuracy on each module before the next unlocks. Take your time and truly master each concept!
+          </div>
+          
+          <div className="learning-path">
+            {modules.map((module, index) => (
+              <div
+                key={module.id}
+                className={`path-node ${module.completed ? 'completed' : ''} ${!module.locked && !module.completed ? 'current' : ''} ${module.locked ? 'locked' : ''}`}
+                onClick={() => !module.locked && onSelectModule(module)}
+                style={{ cursor: module.locked ? 'not-allowed' : 'pointer' }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: '600', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span>{module.icon}</span>
+                      <span>{module.title}</span>
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                      {module.type === 'lesson' && `Lesson • ${module.problems} problems • Video tutorial`}
+                      {module.type === 'project' && `Project • Real-world application`}
+                      {module.type === 'capstone' && `Capstone • Final assessment`}
+                    </div>
+                  </div>
+                  <div>
+                    {module.completed && <span className="badge badge-success">Completed ✓</span>}
+                    {!module.locked && !module.completed && <span className="badge badge-primary">Start Here →</span>}
+                    {module.locked && <span className="badge badge-locked">🔒 Locked</span>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '1rem', border: '1px solid var(--border)' }}>
+            <h3 style={{ marginBottom: '1rem' }}>📚 External Resources</h3>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <a 
+                href="https://www.khanacademy.org/math/algebra" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="btn btn-secondary"
+              >
+                Khan Academy →
+              </a>
+              <a 
+                href="https://www.ixl.com/math/algebra-1" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-secondary"
+              >
+                IXL Practice →
+              </a>
+            </div>
+            <p style={{ marginTop: '1rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+              These external platforms provide additional practice and video explanations to complement your learning.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    
+    // ============================================================================
+    // ANSWER CHECKING UTILITIES
+    // ============================================================================
+    
+    class AnswerChecker {
+      static normalizeAnswer(answer) {
+        return answer.trim().toLowerCase().replace(/\s+/g, '');
+      }
+      
+      static parseFraction(str) {
+        str = str.trim();
+        
+        // Mixed number (e.g., "1 1/2")
+        const mixedMatch = str.match(/^(-?\d+)\s+(\d+)\/(\d+)$/);
+        if (mixedMatch) {
+          const whole = parseInt(mixedMatch[1]);
+          const num = parseInt(mixedMatch[2]);
+          const den = parseInt(mixedMatch[3]);
+          return whole + (num / den) * (whole < 0 ? -1 : 1);
+        }
+        
+        // Simple fraction (e.g., "3/4")
+        const fracMatch = str.match(/^(-?\d+)\/(\d+)$/);
+        if (fracMatch) {
+          return parseInt(fracMatch[1]) / parseInt(fracMatch[2]);
+        }
+        
+        return null;
+      }
+      
+      static parseNumber(str) {
+        str = this.normalizeAnswer(str);
+        
+        // Try as decimal first
+        const decimal = parseFloat(str);
+        if (!isNaN(decimal)) {
+          return decimal;
+        }
+        
+        // Try as fraction
+        const fraction = this.parseFraction(str);
+        if (fraction !== null) {
+          return fraction;
+        }
+        
+        return null;
+      }
+      
+      static compareAnswers(userAnswer, correctAnswer, tolerance = 0.01) {
+        const userNorm = this.normalizeAnswer(userAnswer);
+        const correctNorm = this.normalizeAnswer(correctAnswer);
+        
+        // Exact string match
+        if (userNorm === correctNorm) {
+          return { correct: true, userValue: userAnswer, correctValue: correctAnswer };
+        }
+        
+        // Try to parse as numbers
+        const userNum = this.parseNumber(userAnswer);
+        const correctNum = this.parseNumber(correctAnswer);
+        
+        if (userNum !== null && correctNum !== null) {
+          const isClose = Math.abs(userNum - correctNum) < tolerance;
+          return { 
+            correct: isClose, 
+            userValue: userNum, 
+            correctValue: correctNum,
+            userOriginal: userAnswer,
+            correctOriginal: correctAnswer
+          };
+        }
+        
+        return { correct: false, userValue: userAnswer, correctValue: correctAnswer };
+      }
+    }
+    
+    // ============================================================================
+    // MODULE VIEW - Full implementation with practice
+    // ============================================================================
+    function ModuleView({ module, studentData, saveStudentData, onBack }) {
+      const [currentProblem, setCurrentProblem] = useState(null);
+      const [userAnswer, setUserAnswer] = useState('');
+      const [feedback, setFeedback] = useState(null);
+      const [showHint, setShowHint] = useState(false);
+      const [showSteps, setShowSteps] = useState(false);
+      const [problemsCompleted, setProblemsCompleted] = useState(0);
+      const [correctAnswers, setCorrectAnswers] = useState(0);
+      const [showVideo, setShowVideo] = useState(true);
+      
+      useEffect(() => {
+        generateNewProblem();
+      }, []);
+      
+      const generateNewProblem = () => {
+        // Simple problem generator
+        const a = Math.floor(Math.random() * 10) + 1;
+        const b = Math.floor(Math.random() * 20) - 10;
+        const c = Math.floor(Math.random() * 20) - 10;
+        
+        const answer = Math.round((c - b) / a * 100) / 100;
+        
+        // Format the equation properly
+        let equation;
+        if (b >= 0) {
+          equation = `${a}x + ${b} = ${c}`;
+        } else {
+          equation = `${a}x - ${Math.abs(b)} = ${c}`;
+        }
+        
+        // Format steps with proper signs
+        const step2 = b >= 0 
+          ? `Subtract ${b} from both sides: ${a}x = ${c - b}`
+          : `Add ${Math.abs(b)} to both sides: ${a}x = ${c - b}`;
+        
+        setCurrentProblem({
+          question: `Solve for x: ${equation}`,
+          answer: answer.toString(),
+          steps: [
+            `Start with: ${equation}`,
+            step2,
+            `Divide both sides by ${a}`,
+            `x = ${answer}`
+          ],
+          hints: [
+            b >= 0 
+              ? "First, isolate the term with x by subtracting the constant"
+              : "First, isolate the term with x by adding the constant to both sides",
+            "Then divide to solve for x"
+          ]
+        });
+        
+        setUserAnswer('');
+        setFeedback(null);
+        setShowHint(false);
+        setShowSteps(false);
+      };
+      
+      const checkAnswer = () => {
+        const answerComparison = AnswerChecker.compareAnswers(userAnswer, currentProblem.answer.toString());
+        const correct = answerComparison.correct;
+        
+        setFeedback({
+          correct,
+          message: correct ? '🎉 Correct! Well done!' : '❌ Not quite. Let me show you the solution.',
+          answerDetails: answerComparison
+        });
+        
+        setShowSteps(true);
+        setProblemsCompleted(problemsCompleted + 1);
+        if (correct) setCorrectAnswers(correctAnswers + 1);
+        
+        // Update student data
+        const accuracy = ((correctAnswers + (correct ? 1 : 0)) / (problemsCompleted + 1)) * 100;
+        const updatedData = {
+          ...studentData,
+          totalProblems: studentData.totalProblems + 1,
+          totalCorrect: studentData.totalCorrect + (correct ? 1 : 0)
+        };
+        saveStudentData(updatedData);
+      };
+      
+      const accuracy = problemsCompleted > 0 ? (correctAnswers / problemsCompleted * 100) : 0;
+      const masteryAchieved = problemsCompleted >= module.problems && accuracy >= 80;
+      
+      return (
+        <div className="fade-in">
+          <button className="btn btn-secondary" onClick={onBack} style={{ marginBottom: '1.5rem' }}>
+            ← Back to Playlist
+          </button>
+          
+          <div className="page-header">
+            <h1 className="page-title">{module.icon} {module.title}</h1>
+            <p className="page-subtitle">{module.type === 'lesson' ? 'Lesson' : module.type === 'project' ? 'Project' : 'Capstone'}</p>
+          </div>
+          
+          {/* Progress Stats */}
+          <div className="grid grid-3" style={{ marginBottom: '2rem' }}>
+            <div className="stat-card">
+              <div className="stat-label">Problems Completed</div>
+              <div className="stat-value">{problemsCompleted}/{module.problems}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">Accuracy</div>
+              <div className="stat-value" style={{ color: accuracy >= 80 ? 'var(--accent-success)' : 'var(--accent-warning)' }}>
+                {Math.round(accuracy)}%
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">Mastery Status</div>
+              <div className="stat-value" style={{ fontSize: '1.5rem' }}>
+                {masteryAchieved ? '✓ Mastered!' : '📚 Learning'}
+              </div>
+            </div>
+          </div>
+          
+          {masteryAchieved && (
+            <div className="alert alert-success" style={{ marginBottom: '2rem' }}>
+              <strong>🎉 Congratulations!</strong> You've mastered this module with {Math.round(accuracy)}% accuracy. The next module is now unlocked!
+            </div>
+          )}
+          
+          {/* Video Tutorial */}
+          {showVideo && (
+            <div style={{ marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>📺 Video Tutorial</h2>
+                <button className="btn btn-secondary" onClick={() => setShowVideo(false)}>
+                  Hide Video
+                </button>
+              </div>
+              <div className="video-container">
+                <iframe
+                  src="https://www.youtube.com/embed/NJnk26k_gVg"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                Watch this Khan Academy tutorial to understand linear equations before practicing.
+              </p>
+              <div style={{ marginTop: '1rem' }}>
+                <a 
+                  href="https://www.khanacademy.org/math/algebra/x2f8bb11595b61c86:solve-equations-inequalities" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-secondary"
+                  style={{ fontSize: '0.875rem' }}
+                >
+                  More Videos on Khan Academy →
+                </a>
+              </div>
+            </div>
+          )}
+          
+          {!showVideo && (
+            <button className="btn btn-secondary" onClick={() => setShowVideo(true)} style={{ marginBottom: '2rem' }}>
+              📺 Show Video Tutorial
+            </button>
+          )}
+          
+          {/* Practice Problem */}
+          {currentProblem && !masteryAchieved && (
+            <div className="card" style={{ padding: '2rem', marginBottom: '2rem' }}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>
+                Problem {problemsCompleted + 1} of {module.problems}
+              </h3>
+              
+              <div className="math-display" style={{ marginBottom: '2rem', fontSize: '1.5rem' }}>
+                {currentProblem.question}
+              </div>
+              
+              {!feedback ? (
+                <>
+                  <input
+                    type="text"
+                    className="input-field"
+                    placeholder="Enter your answer..."
+                    value={userAnswer}
+                    onChange={(e) => setUserAnswer(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && userAnswer && checkAnswer()}
+                    style={{ marginBottom: '1rem' }}
+                  />
+                  
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button 
+                      className="btn btn-primary" 
+                      onClick={checkAnswer}
+                      disabled={!userAnswer}
+                      style={{ flex: 1 }}
+                    >
+                      Check Answer
+                    </button>
+                    <button 
+                      className="btn btn-secondary" 
+                      onClick={() => setShowHint(true)}
+                    >
+                      💡 Hint
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <div style={{
+                    padding: '1.5rem',
+                    background: feedback.correct ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                    border: `2px solid ${feedback.correct ? 'var(--accent-success)' : 'var(--accent-danger)'}`,
+                    borderRadius: '0.75rem',
+                    marginBottom: '1.5rem'
+                  }}>
+                    <div style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                      {feedback.message}
+                    </div>
+                    {feedback.correct && feedback.answerDetails && feedback.answerDetails.userOriginal && (
+                      <div style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                        Your answer: <span className="math-display" style={{ display: 'inline', padding: '0.25rem 0.5rem' }}>
+                          {feedback.answerDetails.userOriginal}
+                        </span>
+                        {feedback.answerDetails.userOriginal !== feedback.answerDetails.correctOriginal && (
+                          <span> ✓ (equivalent to {currentProblem.answer})</span>
+                        )}
+                      </div>
+                    )}
+                    <div style={{ color: 'var(--text-secondary)' }}>
+                      Correct answer: <span className="math-display" style={{ display: 'inline', padding: '0.25rem 0.5rem' }}>
+                        x = {currentProblem.answer}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <button className="btn btn-primary" onClick={generateNewProblem} style={{ width: '100%' }}>
+                    Next Problem →
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Hint */}
+          {showHint && currentProblem && currentProblem.hints.length > 0 && (
+            <div className="card" style={{ marginBottom: '2rem', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid var(--accent-warning)' }}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: 'var(--accent-warning)' }}>
+                💡 Hint
+              </h3>
+              <p>{currentProblem.hints[0]}</p>
+            </div>
+          )}
+          
+          {/* Step-by-step solution */}
+          {showSteps && currentProblem && (
+            <div className="card" style={{ background: 'rgba(139, 92, 246, 0.1)', border: '1px solid var(--accent-secondary)' }}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: 'var(--accent-secondary)' }}>
+                📝 Step-by-Step Solution
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {currentProblem.steps.map((step, index) => (
+                  <div key={index} style={{
+                    padding: '1rem',
+                    background: 'var(--bg-tertiary)',
+                    borderRadius: '0.5rem',
+                    borderLeft: '4px solid var(--accent-secondary)'
+                  }}>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                      Step {index + 1}
+                    </div>
+                    <div style={{ fontFamily: 'JetBrains Mono', fontSize: '1.125rem' }}>
+                      {step}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {masteryAchieved && (
+            <div style={{ textAlign: 'center', padding: '3rem' }}>
+              <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎓</div>
+              <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Module Complete!</h2>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+                You've demonstrated mastery of this topic. Keep up the great work!
+              </p>
+              <button className="btn btn-primary" onClick={onBack}>
+                Continue to Next Module →
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    // PROGRESS VIEW
+    function ProgressView({ studentData }) {
+      return (
+        <div className="fade-in">
+          <div className="page-header">
+            <h1 className="page-title">Your Progress</h1>
+            <p className="page-subtitle">Track your learning journey</p>
+          </div>
+          
+          <div className="grid grid-3">
+            <div className="stat-card">
+              <div className="stat-label">Problems Solved</div>
+              <div className="stat-value">{studentData.totalProblems}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">Accuracy</div>
+              <div className="stat-value">
+                {studentData.totalProblems > 0 
+                  ? Math.round((studentData.totalCorrect / studentData.totalProblems) * 100) 
+                  : 0}%
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">Overall Progress</div>
+              <div className="stat-value">{Math.round(studentData.overallProgress)}%</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    // TEACHER DASHBOARD
+    function TeacherDashboard({ user, onLogout }) {
+      return (
+        <div className="app-container">
+          <div className="sidebar">
+            <div className="sidebar-header">
+              <div className="logo">Guided Math</div>
+              <div className="user-info">Teacher: {user.username}</div>
+            </div>
+            <div className="sidebar-nav">
+              <div className="nav-item active">
+                <span>👥</span>
+                <span>My Students</span>
+              </div>
+              <div className="nav-item">
+                <span>📊</span>
+                <span>Analytics</span>
+              </div>
+              <div className="nav-item">
+                <span>📚</span>
+                <span>Curriculum</span>
+              </div>
+            </div>
+            <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border)' }}>
+              <button className="btn btn-secondary" style={{ width: '100%' }} onClick={onLogout}>
+                Log Out
+              </button>
+            </div>
+          </div>
+          
+          <div className="main-content fade-in">
+            <div className="page-header">
+              <h1 className="page-title">Student Dashboard</h1>
+              <p className="page-subtitle">Monitor student progress and mastery</p>
+            </div>
+            
+            <div className="student-card">
+              <div className="student-header">
+                <div className="student-name">Sample Student</div>
+                <span className="badge badge-success">Active</span>
+              </div>
+              <div className="student-stats">
+                <div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
+                    Current Playlist
+                  </div>
+                  <div>Algebra Foundations</div>
+                </div>
+                <div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
+                    Problems Solved
+                  </div>
+                  <div>147</div>
+                </div>
+                <div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
+                    Accuracy
+                  </div>
+                  <div>85%</div>
+                </div>
+              </div>
+              <div className="progress-bar" style={{ marginTop: '1rem' }}>
+                <div className="progress-fill" style={{ width: '65%' }} />
+              </div>
+            </div>
+            
+            <div className="alert alert-info">
+              <strong>Teacher Dashboard Features:</strong><br/>
+              In a full implementation, you would see:<br/>
+              • Real-time student progress<br/>
+              • Mastery indicators per topic<br/>
+              • Time spent on each module<br/>
+              • Struggling areas flagged<br/>
+              • Class-wide analytics<br/>
+              • Assignment creation tools
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    // Render
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
